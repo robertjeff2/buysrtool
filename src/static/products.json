@@ -912,7 +912,7 @@
     },
     {
       "id": 114,
-      "name": "KEEP GOING双面用托特包(缺货)",
+      "name": "KEEP GOING双面用托特包",
       "price": 259,
       "category": "包包",
       "size_color": "",
@@ -1029,6 +1029,26 @@
       "image": "/static/imgs/97.png",
       "sizes": [],
       "colors": []
+    },
+    {
+      "id": 117,
+      "name": "STAY SIMPLE渔夫帽",
+      "price": 329,
+      "category": "其他",
+      "size_color": "",
+      "image": "/static/imgs/117.png",
+      "sizes": [],
+      "colors": ["蓝色", "粉红", "深灰"]
+    },
+    {
+      "id": 118,
+      "name": "STAY SIMPLE网眼拼接五片帽",
+      "price": 279,
+      "category": "其他",
+      "size_color": "",
+      "image": "/static/imgs/118.png",
+      "sizes": [],
+      "colors": ["深蓝", "粉红", "白色"]
     },
     {
       "id": 115,
