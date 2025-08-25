@@ -1318,7 +1318,7 @@ const giftItems = computed(() => {
   background: linear-gradient(135deg, #ef7721 0%, #ff8a3d 100%);
   border: none;
   border-radius: 20rpx;
-  padding: 8rpx 16rpx;
+  padding: 12rpx 16rpx;
   display: flex;
   align-items: center;
   gap: 6rpx;
@@ -1857,10 +1857,9 @@ const giftItems = computed(() => {
 /* 赠品区域样式 */
 .gift-section {
   margin-top: 20rpx;
-  padding: 20rpx;
+  padding: 20rpx 5rpx;
   background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
   border-radius: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(255, 138, 61, 0.2);
 }
 
 .gift-title {
@@ -1868,7 +1867,6 @@ const giftItems = computed(() => {
   font-weight: 700;
   color: #ef7721;
   margin-bottom: 16rpx;
-  /* text-align: center; */
 }
 
 .gift-items {
@@ -1876,7 +1874,7 @@ const giftItems = computed(() => {
   font-size: 24rpx;
   align-items: center;
   flex-direction: row;
-  gap: 12rpx;
+  gap: 6rpx;
   flex-wrap: nowrap;
   overflow-x: auto;
   white-space: nowrap;
