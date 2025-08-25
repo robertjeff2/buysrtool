@@ -523,7 +523,7 @@
     {
       "id": 51,
       "name": "机械纯真兔兔Tee",
-      "price": 359,
+      "price": 329,
       "category": "Tee",
       "size_color": "黑标",
       "image": "/static/imgs/51.png",
@@ -553,7 +553,7 @@
     {
       "id": 53,
       "name": "LOVE IS LOVE丹宁外套",
-      "price": 699,
+      "price": 799,
       "category": "衬衫",
       "size_color": "黑标",
       "image": "/static/imgs/53.png",
@@ -877,6 +877,16 @@
       "category": "配件",
       "size_color": "",
       "image": "/static/imgs/84.png",
+      "sizes": [],
+      "colors": []
+    },
+    {
+      "id": 116,
+      "name": "REAL娃娃衣棒球外套",
+      "price": 99,
+      "category": "配件",
+      "size_color": "",
+      "image": "/static/imgs/116.png",
       "sizes": [],
       "colors": []
     },
