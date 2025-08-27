@@ -1031,6 +1031,16 @@
       "colors": []
     },
     {
+      "id": 119,
+      "name": "KEEP GOING多色老帽",
+      "price": 279,
+      "category": "其他",
+      "size_color": "",
+      "image": "/static/imgs/119.png",
+      "sizes": [],
+      "colors": ["橘色", "蓝色", "粉色","黑色","黄色"]
+    },
+    {
       "id": 117,
       "name": "STAY SIMPLE渔夫帽",
       "price": 329,
