@@ -91,6 +91,16 @@
       "colors": ["白色", "粉色", "蓝色", "黑色"]
     },
     {
+      "id": 120,
+      "name": "PLANA未来有你拼接丹宁外套",
+      "price": 899,
+      "category": "PLANA",
+      "size_color": "多色可选",
+      "image": "/static/imgs/120.png",
+      "sizes": ["S", "M", "L"],
+      "colors": ["蓝色", "黑色"]
+    },
+    {
       "id": 10,
       "name": "PLANA未来有你丹宁外套",
       "price": 899,
