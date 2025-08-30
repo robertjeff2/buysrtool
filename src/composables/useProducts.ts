@@ -22,6 +22,9 @@ const productState = reactive<ProductState>({
   error: null,
 });
 
+// 存储搜索框初始位置
+let searchSectionTop = 0;
+
 // 产品组合式函数
 export const useProducts = () => {
   // 加载产品数据
@@ -52,7 +55,7 @@ export const useProducts = () => {
       });
       productState.categories = Array.from(categorySet).map(cat => ({
         id: cat,
-        name: cat,  
+        name: cat,
       }));
 
       productState.loading = 'success';
@@ -62,13 +65,26 @@ export const useProducts = () => {
     }
   };
 
+  // 记录搜索框初始位置
+  const recordSearchSectionPosition = () => {
+    uni
+      .createSelectorQuery()
+      .select('.search-section')
+      .boundingClientRect(rect => {
+        if (rect && !Array.isArray(rect) && typeof rect.top === 'number') {
+          searchSectionTop = rect.top - 20;
+        }
+      })
+      .exec();
+  };
+
   // 设置当前分类
   const setCategory = (category: string) => {
     productState.currentCategory = category;
-    // 切换分类后滚动到顶部
+    // 切换分类后滚动到搜索框初始位置
     uni.pageScrollTo({
-      scrollTop: 325,
-      duration: 300
+      scrollTop: searchSectionTop || 120, // 使用记录的位置，如果没有则使用默认值
+      duration: 300,
     });
   };
 
@@ -161,6 +177,7 @@ export const useProducts = () => {
 
     // 方法
     loadProducts,
+    recordSearchSectionPosition,
     setCategory,
     setSearchKeyword,
     clearSearch,

@@ -382,6 +382,7 @@ const {
   error,
   filteredProducts,
   loadProducts,
+  recordSearchSectionPosition,
   setCategory,
   searchProducts,
   clearSearch
@@ -469,6 +470,11 @@ onMounted(async () => {
   
   // 输出性能指标
   console.log('页面加载时间:', getLoadTime(), 'ms');
+  
+  // 记录搜索框初始位置
+  nextTick(() => {
+    recordSearchSectionPosition();
+  });
 });
 
 // 搜索性能优化
