@@ -36,6 +36,10 @@ export const getPlatform = (): Platform => {
 
 // 格式化价格
 export const formatPrice = (price: number): string => {
+  // 如果是整数，不显示小数点
+  if (price % 1 === 0) {
+    return `¥${price}`;
+  }
   return `¥${price.toFixed(2)}`;
 };
 

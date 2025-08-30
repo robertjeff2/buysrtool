@@ -44,15 +44,15 @@ export const useProducts = () => {
       }
 
       // 提取分类信息
-      const categorySet = new Set([]);
+      const categorySet = new Set<string>([]);
       productState.products.forEach(product => {
         if (product.category) {
           categorySet.add(product.category);
         }
       });
       productState.categories = Array.from(categorySet).map(cat => ({
-        label: cat,
-        value: cat,
+        id: cat,
+        name: cat,  
       }));
 
       productState.loading = 'success';
@@ -65,6 +65,11 @@ export const useProducts = () => {
   // 设置当前分类
   const setCategory = (category: string) => {
     productState.currentCategory = category;
+    // 切换分类后滚动到顶部
+    uni.pageScrollTo({
+      scrollTop: 325,
+      duration: 300
+    });
   };
 
   // 设置搜索关键词

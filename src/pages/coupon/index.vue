@@ -4,7 +4,7 @@
     
     <!-- 顶部标题区域 -->
     <view class="header-section">
-      <BaseImage src="@/static/imgs/top.png" class="header-image" />
+      <img src="@/static/imgs/top.png" class="header-image" />
     </view>
 
     <!-- 分类选择器 -->
@@ -12,12 +12,12 @@
       <view class="category-container">
         <view
           v-for="category in categories"
-          :key="category.value"
+          :key="category.id"
           class="category-item"
-          :class="{ active: currentCategory === category.value }"
-          @click="setCategory(category.value)"
+          :class="{ active: currentCategory === category.id }"
+          @click="setCategory(category.id)"
         >
-          <text class="category-text">{{ category.label }}</text>
+          <text class="category-text">{{ category.name }}</text>
         </view>
       </view>
     </view>
@@ -766,7 +766,7 @@ const giftItems = computed(() => {
 
 /* 顶部标题区域 */
 .header-section {
-  /* padding: 20rpx; */
+  padding: 10rpx 25px 0rpx 25px;
   text-align: center;
   position: relative;
   

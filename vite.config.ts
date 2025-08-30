@@ -145,7 +145,9 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         // 全局 SCSS 变量和混入
-        additionalData: `@import "@/common/style/variables.scss";`,
+        additionalData: `@use "@/common/style/variables.scss" as *;`,
+        // 使用现代 Sass API
+        api: 'modern',
       },
     },
     
