@@ -807,7 +807,7 @@ const giftItems = computed(() => {
 
 /* 分类选择器 */
 .category-section {
-  padding: 0 40rpx 40rpx;
+  padding: 0 40rpx 20rpx 40rpx;
   position: sticky;
   top: 0rpx;
   z-index: 100;
@@ -939,7 +939,7 @@ const giftItems = computed(() => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24rpx;
-  padding-bottom: 30rpx;
+  padding-bottom: 0rpx;
 }
 
 /* 虚拟滚动样式 */
@@ -1127,7 +1127,7 @@ const giftItems = computed(() => {
   left: 0;
   right: 0;
   z-index: 1000;
-  padding: 0 20rpx 20rpx;
+  padding: 0 25rpx 20rpx 25rpx;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.1) 0%, transparent 100%);
 }
 
@@ -1137,11 +1137,11 @@ const giftItems = computed(() => {
   -webkit-backdrop-filter: blur(30px);
   border-radius: 16rpx;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  /* box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08); */
 }
 
 .summary-content {
-  padding: 16rpx;
+  /* padding: 16rpx; */
 }
 
 .target-section {
@@ -1149,7 +1149,7 @@ const giftItems = computed(() => {
 }
 
 .unified-target {
-  padding: 16rpx;
+  padding: 0 16rpx;
   background: linear-gradient(
     135deg,
     rgba(239, 119, 33, 0.08) 0%,
