@@ -1,8 +1,10 @@
 <template>
   <view class="coupon-container">
+
+    
     <!-- 顶部标题区域 -->
     <view class="header-section">
-      <image src="@/static/imgs/top.png" class="header-image" />
+      <BaseImage src="@/static/imgs/top.png" class="header-image" />
     </view>
 
     <!-- 分类选择器 -->
@@ -30,7 +32,7 @@
             type="text"
             placeholder="搜索商品名称、分类或关键词..."
             v-model="searchKeyword"
-            @input="handleSearch"
+            @input="handleSearchWithPerformance"
           />
           <view class="clear-button" v-if="searchKeyword" @click="clearSearch">
             <text class="clear-icon">✕</text>
@@ -41,51 +43,41 @@
 
     <!-- 商品列表区域 -->
     <view class="products-section">
-      <view class="products-grid">
-        <view
-          v-for="product in filteredProducts"
-          :key="product.id"
-          class="product-card"
-          :class="{ selected: isProductSelected(product.id) }"
-          @click="handleProductClick(product.id)"
+      <ErrorBoundary>
+        <!-- 虚拟滚动容器（商品数量多时使用） -->
+        <view 
+          v-if="enableVirtualScroll"
+          ref="containerRef"
+          class="virtual-scroll-container"
+          @scroll="handleScroll"
         >
-          <!-- 选中状态指示器 -->
-          <view
-            class="selection-indicator"
-            v-if="isProductSelected(product.id)"
-          >
-            <view class="checkmark">✓</view>
-          </view>
-
-          <!-- 商品图片 -->
-          <view class="product-image-container">
-            <image
-              :src="product.image"
-              class="product-image"
-              mode="aspectFit"
+          <view ref="listRef" class="virtual-scroll-list">
+            <ProductCard
+              v-for="(item,index) in visibleData"
+              :key="index"
+              :product="item.item"
+              :is-selected="isProductSelected(item.id)"
+              :show-quantity-control="true"
+              @click="handleProductClick(item.id)"
+              @add-remove="handleAddRemoveClick(item.id)"
+              :style="{ transform: `translateY(${item.top}px)` }"
             />
           </view>
-
-          <!-- 商品信息 -->
-          <view class="product-details">
-            <text class="product-name">{{ product.name }}</text>
-            <view class="product-meta">
-              <text class="product-price">¥{{ product.price }}</text>
-              <text class="product-category">{{ product.category }}</text>
-            </view>
-          </view>
-
-          <!-- 添加按钮 -->
-          <view
-            class="add-button"
-            @click.stop="handleAddRemoveClick(product.id)"
-          >
-            <text class="add-text">{{
-              isProductSelected(product.id) ? '−' : '+'
-            }}</text>
-          </view>
         </view>
-      </view>
+        
+        <!-- 普通网格布局（商品数量少时使用） -->
+        <view v-else class="products-grid">
+          <ProductCard
+            v-for="product in filteredProducts"
+            :key="product.id"
+            :product="product"
+            :is-selected="isProductSelected(product.id)"
+            :show-quantity-control="true"
+            @click="handleProductClick(product.id)"
+            @add-remove="handleAddRemoveClick(product.id)"
+          />
+        </view>
+      </ErrorBoundary>
     </view>
 
     <!-- 底部汇总区域 -->
@@ -171,19 +163,18 @@
       </view>
     </view>
   </view>
-  <transition name="slide-up">
-    <el-dialog
-      v-model="showCartDialog"
-      width="90%"
-      custom-class="bottom-dialog"
-      :modal-append-to-body="false"
-      :append-to-body="true"
-      :before-close="() => (showCartDialog = false)"
-      :close-on-click-modal="true"
-      :show-close="false"
-      class="cart-dialog"
-      v-if="showCartDialog"
-    >
+  <el-dialog
+    v-model="showCartDialog"
+    width="90%"
+    custom-class="bottom-dialog"
+    :modal-append-to-body="false"
+    :append-to-body="true"
+    :before-close="() => (showCartDialog = false)"
+    :close-on-click-modal="true"
+    :show-close="false"
+    class="cart-dialog"
+    v-if="showCartDialog"
+  >
       <!-- 标题编辑区域 -->
       <div class="cart-title-section">
         <div v-if="!isEditingTitle" class="title-display">
@@ -272,14 +263,14 @@
           <div class="cart-total">
             <span>总计: {{ totalPrice }}元</span>
           </div>
+          
+
         </div>
       </div>
     </el-dialog>
-  </transition>
 
   <!-- 尺码颜色选择弹窗 -->
-  <transition name="slide-up">
-    <el-dialog
+  <el-dialog
       title="选择规格"
       v-model="showSizeColorDialog"
       width="90%"
@@ -363,21 +354,71 @@
         </div>
       </div>
     </el-dialog>
-  </transition>
+
+
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed, nextTick } from 'vue';
-// 导入商品数据
-import productsData from '@/static/products.json';
+// 导入组合式函数
+import { useProducts } from '@/composables/useProducts';
+import { useCart } from '@/composables/useCart';
+import { useLazyLoad } from '@/composables/useLazyLoad';
+import { useVirtualScroll } from '@/composables/useVirtualScroll';
+import { usePagePerformance } from '@/composables/usePerformance';
+// 导入组件
+import ProductCard from '@/components/ProductCard.vue';
+import BaseImage from '@/components/BaseImage.vue';
+import ErrorBoundary from '@/components/ErrorBoundary.vue';
 
-// 状态定义
-const products = ref<any[]>([]);
-const selectedProducts = ref<any[]>([]);
-const currentCategory = ref<string>('新品');
+
+// 使用组合式函数
+const {
+  products,
+  categories,
+  currentCategory,
+  searchKeyword,
+  loading,
+  error,
+  filteredProducts,
+  loadProducts,
+  setCategory,
+  searchProducts,
+  clearSearch
+} = useProducts();
+
+const {
+  cartItems,
+  cartTotal,
+  cartCount,
+  addToCart,
+  removeFromCart,
+  updateQuantity,
+  clearCart,
+  isInCart
+} = useCart();
+
+const { lazyLoadRef, isVisible } = useLazyLoad();
+
+// 性能监控
+const { startLoadTiming, endLoadTiming, getLoadTime } = usePagePerformance();
+
+// 虚拟滚动（当商品数量较多时启用）
+const enableVirtualScroll = computed(() => filteredProducts.value.length > 50);
+const {
+  containerRef,
+  listRef,
+  visibleData,
+  scrollToIndex,
+  handleScroll
+} = useVirtualScroll(filteredProducts, {
+  itemHeight: 280, // 商品卡片高度
+  containerHeight: 600, // 容器高度
+  buffer: 3
+});
+// 页面状态
 const showCartDialog = ref<boolean>(false);
-const loading = ref<boolean>(true);
-const searchKeyword = ref<string>('');
+const selectedProducts = ref<any[]>([]);
 
 // 购物车标题相关状态
 const cartTitle = ref<string>('方案清单');
@@ -396,19 +437,9 @@ const isSwiping = ref<boolean>(false);
 const swipeDistance = ref<{ [key: string]: number }>({});
 const deletingItems = ref<Set<string>>(new Set());
 
-// 分类数据
-const categories = ref([
-  { label: '新品', value: '新品' },
-  { label: '公仔', value: '公仔' },
-  { label: 'PLANA', value: 'PLANA' },
-  { label: '热销', value: '热销' },
-  { label: 'Tee', value: 'Tee' },
-  { label: '衬衫', value: '衬衫' },
-  { label: '下装', value: '下装' },
-  { label: '配件', value: '配件' },
-  { label: '包包', value: '包包' },
-  { label: '其他', value: '其他' }
-]);
+
+
+// 分类数据已通过 useProducts 组合式函数提供
 // 计算属性
 const requiresSize = computed(() => {
   return (
@@ -431,27 +462,27 @@ const canConfirm = computed(() => {
 });
 
 // 生命周期钩子
-onMounted(() => {
-  loading.value = true;
-  // 模拟异步加载
-  setTimeout(() => {
-    products.value = productsData.products;
-    loading.value = false;
-  }, 800);
+onMounted(async () => {
+  startLoadTiming();
+  await loadProducts();
+  endLoadTiming();
+  
+  // 输出性能指标
+  console.log('页面加载时间:', getLoadTime(), 'ms');
 });
 
-// 设置分类
-const setCategory = (category: string) => {
-  currentCategory.value = category;
-  // 可以在这里添加额外的逻辑，比如滚动到顶部或重置筛选
-  // uni.pageScrollTo({
-  //   scrollTop: 0,
-  //   duration: 300
-  // });
+// 搜索性能优化
+const handleSearchWithPerformance = () => {
+  const searchStart = performance.now();
+  searchProducts({ keyword: searchKeyword.value });
+  const searchEnd = performance.now();
+  console.log('搜索耗时:', searchEnd - searchStart, 'ms');
 };
 
+// setCategory 方法已通过 useProducts 组合式函数提供
+
 // 处理商品点击
-const handleProductClick = (productId: number) => {
+const handleProductClick = (productId: string) => {
   const product = products.value.find((p) => p.id === productId);
   if (product) {
     // 检查商品是否有尺码和颜色选择
@@ -466,6 +497,12 @@ const handleProductClick = (productId: number) => {
       showSizeColorDialog.value = true;
     } else {
       // 没有规格选择，直接添加到购物车
+      addToCart(product, {
+        size: '标准款',
+        color: '默认'
+      });
+      
+      // 同时添加到本地选中列表（用于页面显示）
       const cartItem = {
         id: Date.now(),
         productId: product.id,
@@ -476,7 +513,6 @@ const handleProductClick = (productId: number) => {
         color: '默认',
         category: product.category
       };
-
       selectedProducts.value.push(cartItem);
 
       uni.showToast({
@@ -488,7 +524,7 @@ const handleProductClick = (productId: number) => {
 };
 
 // 处理添加/移除商品点击
-const handleAddRemoveClick = (productId: number) => {
+const handleAddRemoveClick = (productId: string) => {
   // 检查商品是否已在购物车中
   if (isProductSelected(productId)) {
     // 商品已选中，从购物车中移除最后一个相同商品ID的项目
@@ -527,6 +563,13 @@ const confirmAddToCart = () => {
     return;
   }
 
+  // 使用 useCart 组合式函数添加到购物车
+  addToCart(currentSelectingProduct.value, {
+    size: selectedSize.value || '标准款',
+    color: selectedColor.value || '默认'
+  });
+
+  // 同时添加到本地选中列表（用于页面显示）
   const cartItem = {
     id: Date.now(), // 使用时间戳作为唯一ID
     productId: currentSelectingProduct.value.id,
@@ -547,8 +590,9 @@ const confirmAddToCart = () => {
   });
 };
 
-// 从购物车移除商品
-const removeFromCart = (cartItemId: number) => {
+// removeFromCart 方法已通过 useCart 组合式函数提供
+// 本地移除方法用于滑动删除
+const removeFromCartLocal = (cartItemId: number) => {
   selectedProducts.value = selectedProducts.value.filter(
     (item) => item.id !== cartItemId
   );
@@ -596,7 +640,7 @@ const handleTouchEnd = (event: TouchEvent, itemId: string) => {
 
       // 延迟删除，等待动画完成
       setTimeout(() => {
-        removeFromCart(itemId);
+        removeFromCartLocal(itemId);
         deletingItems.value.delete(itemId);
         delete swipeDistance.value[itemId];
       }, 300);
@@ -621,6 +665,7 @@ const handleTouchEnd = (event: TouchEvent, itemId: string) => {
   isSwiping.value = false;
 };
 
+
 // 重置滑动状态（点击其他地方时调用）
 const resetSwipeState = () => {
   // 重置所有滑动距离到0，添加过渡动画
@@ -638,14 +683,8 @@ const resetSwipeState = () => {
   isSwiping.value = false;
 };
 
-// 搜索处理
-const handleSearch = () => {
-  // 搜索时自动触发过滤
-};
-
-const clearSearch = () => {
-  searchKeyword.value = '';
-};
+// 搜索处理方法已通过 useProducts 组合式函数提供
+// handleSearch 和 clearSearch 方法可直接使用
 
 // 标题编辑相关方法
 const startEditTitle = () => {
@@ -669,59 +708,7 @@ const finishEditTitle = () => {
   isEditingTitle.value = false;
 };
 
-// 筛选商品
-const filteredProducts = computed(() => {
-  let filtered = products.value;
-
-  // 按分类过滤
-  if (currentCategory.value !== 'all') {
-    filtered = filtered.filter(
-      (product) => product.category === currentCategory.value
-    );
-  }
-
-  // 按搜索关键词过滤 - 增强模糊搜索
-  if (searchKeyword.value.trim()) {
-    const keyword = searchKeyword.value.trim().toLowerCase();
-    filtered = filtered.filter((product) => {
-      const productName = product.name.toLowerCase();
-      const productCategory = product.category.toLowerCase();
-
-      // 1. 直接包含匹配
-      if (productName.includes(keyword) || productCategory.includes(keyword)) {
-        return true;
-      }
-
-      // 2. 分词搜索 - 支持空格分隔的多个关键词
-      const keywords = keyword.split(/\s+/).filter((k) => k.length > 0);
-      if (keywords.length > 1) {
-        return keywords.every(
-          (k) => productName.includes(k) || productCategory.includes(k)
-        );
-      }
-
-      // 3. 模糊匹配 - 去除空格后匹配
-      const cleanProductName = productName.replace(/\s+/g, '');
-      const cleanKeyword = keyword.replace(/\s+/g, '');
-      if (cleanProductName.includes(cleanKeyword)) {
-        return true;
-      }
-
-      // 4. 首字母匹配
-      const firstLetters = productName
-        .split('')
-        .filter((char) => /[a-z\u4e00-\u9fa5]/.test(char))
-        .join('');
-      if (firstLetters.includes(cleanKeyword)) {
-        return true;
-      }
-
-      return false;
-    });
-  }
-
-  return filtered;
-});
+// filteredProducts 计算属性已通过 useProducts 组合式函数提供
 
 // 计算已选商品总价
 const totalPrice = computed(() => {
@@ -731,7 +718,7 @@ const totalPrice = computed(() => {
 });
 
 // 检查商品是否已选中
-const isProductSelected = (productId: number) => {
+const isProductSelected = (productId: string) => {
   return selectedProducts.value.some((item) => item.productId === productId);
 };
 
@@ -779,9 +766,17 @@ const giftItems = computed(() => {
 
 /* 顶部标题区域 */
 .header-section {
-  padding: 20rpx;
+  /* padding: 20rpx; */
   text-align: center;
   position: relative;
+  
+} 
+
+.header-image {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 .header-blur {
@@ -944,6 +939,29 @@ const giftItems = computed(() => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24rpx;
+  padding-bottom: 30rpx;
+}
+
+/* 虚拟滚动样式 */
+.virtual-scroll-container {
+  height: 600px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.virtual-scroll-list {
+  position: relative;
+  width: 100%;
+}
+
+.virtual-scroll-list .product-card {
+  position: absolute;
+  width: calc(50% - 12rpx);
+  left: 0;
+}
+
+.virtual-scroll-list .product-card:nth-child(even) {
+  left: calc(50% + 12rpx);
 }
 
 /* 商品卡片 */
@@ -952,7 +970,7 @@ const giftItems = computed(() => {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 20rpx;
-  padding: 20rpx;
+  padding: 10rpx;
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1932,4 +1950,6 @@ const giftItems = computed(() => {
   opacity: 0;
   transform: translateY(-20rpx);
 }
+
+
 </style>
