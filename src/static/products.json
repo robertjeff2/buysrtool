@@ -11,6 +11,16 @@
       "colors": ["黑色", "白色"]
     },
     {
+      "id": 121,
+      "name": "rabbit.Q纯真免免毛绒交通卡",
+      "price": 129,
+      "category": "新品",
+      "size_color": "",
+      "image": "/static/imgs/121.png",
+      "sizes": [],
+      "colors": ["粉红","灰色","白色"]
+    },
+    {
       "id": 2,
       "name": "羞答答小草莓毛绒吊饰",
       "price": 159,
@@ -928,7 +938,7 @@
       "size_color": "",
       "image": "/static/imgs/114.png",
       "sizes": [],
-      "colors": ["黄色", "蓝色", "粉色"]
+      "colors": ["黄色", "蓝色", "红色"]
     },
     {
       "id": 87,
